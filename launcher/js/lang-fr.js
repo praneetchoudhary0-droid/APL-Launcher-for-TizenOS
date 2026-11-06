@@ -406,6 +406,8 @@ window.APL_LANG_FR = {
     "24-Hour Time": "Horloge 24 h",
     "Time format on the Home Screen and in Control Center.": "Format de l'heure de l'accueil et du Centre de contrôle.",
     "Visual Effects": "Effets visuels",
+    "Liquid Glass": "Verre liquide",
+    "The dock and Control Center take their colour from the picture under them, with no live blur, and sit 5% above it. Off: the plain frosted fill.": "Le dock et le Centre de contrôle prennent leur couleur de l'image en dessous, sans flou en direct, et restent 5 % au-dessus. Désactivé : le simple fond givré.",
     "Blur and glass. Prettier but slower: off by default so the screen stays smooth.": "Flou et verre. Plus joli mais plus lent : désactivé par défaut pour que l'écran reste fluide.",
     "Power and Energy Saving": "Électricité et économie d'énergie",
     "Brightness Optimization": "Optimisation de la luminosité",

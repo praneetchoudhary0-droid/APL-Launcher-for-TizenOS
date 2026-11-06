@@ -18,9 +18,9 @@ SCRIPTS = [
     "js/diag.js", "js/lang-fr.js", "js/i18n.js", "js/catalog.js", "js/system.js", "js/keys.local.js", "js/liveshelf.js", "js/icons.js",
     "js/apps.js", "js/autoart.js", "js/genart.js", "js/navigation.js", "js/services.js", "js/settings-tree.js", "js/settings.js",
     "js/controlcenter.js", "js/avatars.local.js", "js/profiles.js", "js/devices.js", "js/sources.js", "js/search.js", "js/appmenu.js", "js/aerials.js", "js/screensaver.js", "js/folders.js", "js/switcher.js", "js/widgets.js", "js/overlay.js",
-    "js/updater.js", "js/launcher.js", "js/preview.js",
+    "js/updater.js", "js/launcher.js", "js/glass.js", "js/preview.js",
 ]
-STYLES = ["css/launcher.css"]
+STYLES = ["css/launcher.css", "css/glass.css"]
 LOADER = 1          # raise it when boot.js changes: the screens will ask for APL Launcher Setup
 REINSTALL = "1.0.0"  # minimum installed version: raise it when config.xml changes (permissions…)
 

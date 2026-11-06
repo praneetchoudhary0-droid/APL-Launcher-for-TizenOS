@@ -172,6 +172,9 @@
         whenDecoded(src, function () {
             if (token !== frostToken) return;                 // another picture was asked for in the meantime
             dom.dock.style.setProperty("--glass-img", src ? 'url("' + String(src).replace(/"/g, "%22") + '")' : "none");
+            /* The sliced glass (glass.js) bakes the same picture; ask it to
+               look again now that the backdrop has really changed. */
+            if (APL.glass && APL.glass.refresh) APL.glass.refresh();
         });
     }
     function flushBlur() {

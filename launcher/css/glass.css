@@ -1,0 +1,124 @@
+/* ============================================================
+   glass.css — pre-blurred glass for the dock and Control Center.
+
+   Pairs with js/glass.js. The material is one blurred copy of the
+   artwork, sliced under each surface by background-position: no
+   backdrop-filter anywhere on the animation path.
+
+   Everything that changes the old look is behind body.glass, which
+   glass.js adds. Remove the class (or the stylesheet) and the
+   translucent fills and the dock blur come back exactly as they were.
+   ============================================================ */
+
+/* ---------- the layer ---------- */
+
+.cg__glass {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    background-repeat: no-repeat;
+    background-size: 1920px 1080px;
+    background-color: transparent;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 320ms ease;   /* a new pane fades in over the old one */
+}
+
+.cg__glass.is-on { opacity: 1; }
+
+/* The edge of the glass, the way Apple draws it: a hairline of light along
+   the top, two pixels and gone. The old version washed a quarter of the
+   pane with white, which read as a reflection rather than an edge. */
+.cg__glass::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    /* 15%: the sheen marks the edge and no longer lifts the picture. */
+    background: linear-gradient(180deg,
+        rgba(255, 255, 255, 0.15) 0,
+        rgba(255, 255, 255, 0.06) 1px,
+        rgba(255, 255, 255, 0) 2px);
+    box-shadow: none;
+}
+
+/* Content sits above the pane; the pane itself never takes a click. */
+body.glass .cc__t > *:not(.cg__glass),
+body.glass .dock > *:not(.cg__glass) {
+    position: relative;
+    z-index: 1;
+}
+
+/* ---------- Control Center ---------- */
+
+/* The blur goes; a slightly darker fill stays for the generated brand cards
+   that have no artwork to slice. The scrim is 6% so the pane sits a touch
+   above the picture instead of washing it out. */
+body.glass .cc__t {
+    background: rgba(24, 26, 34, 0.18);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+body.glass .cc__t > .cg__glass {
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.08),
+        inset 0 0 0 100px rgba(10, 13, 20, 0.06);
+}
+
+/* The big tile carries less scrim: it is the pane you look through. */
+body.glass .cc__t--big > .cg__glass {
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.08),
+        inset 0 0 0 100px rgba(10, 13, 20, 0.04);
+}
+
+body.glass .cc__t--round > .cg__glass { border-radius: 50%; }
+body.glass .cc__t--pill > .cg__glass { border-radius: inherit; }
+
+/* Focus is the tvOS white plate right now; the slice would only fight it. */
+body.glass .cc__t.is-focused > .cg__glass {
+    opacity: 0 !important;
+}
+
+/* ---------- Dock ---------- */
+
+body.glass .dock {
+    background: rgba(24, 26, 34, 0.20);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+body.glass .dock > .cg__glass {
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.06),
+        inset 0 0 0 100px rgba(10, 13, 20, 0.04);
+}
+
+/* The grid state already ships a pre-blurred wallpaper: blur it again and
+   the TV pays for a 1920x1080 filter on every move. */
+body.glass.mode-grid .bg { filter: none; }
+
+/* ============================================================
+   Focus is white
+
+   body.glass .cc__t is more specific than .cc__t.is-focused, so the
+   glass tint used to win over the focus plate on a selected Control
+   Center tile and the selection came out brown. The plate now wins:
+   white, black text, no lens.
+   ============================================================ */
+
+body.glass .cc__t.is-focused,
+body.glass .cc__t--round.is-focused,
+body.glass .cc__t--round.is-focused.is-on {
+    background: #f5f5f7;
+    color: #1c1c1e;
+}
+body.glass .cc__t.is-focused .cc__title { color: #1c1c1e; }
+body.glass .cc__t.is-focused .cc__sub { color: #6e6e73; }
+body.glass .cc__t.is-focused > .cg__glass { display: none; }

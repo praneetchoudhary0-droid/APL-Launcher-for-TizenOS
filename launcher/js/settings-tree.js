@@ -96,6 +96,8 @@
                     ], APL.t("The keys are set in APL Launcher Setup, on the PC."))
                 ], APL.t("The Top Shelf shows the first one available, top to bottom. Turn one off to skip it.")),
                 toggle(APL.t("Visual Effects"), "visualEffects", APL.t("Blur and glass. Prettier but slower: off by default so the screen stays smooth.")),
+                toggle(APL.t("Liquid Glass"), "liquidGlass",
+                    APL.t("The dock and Control Center take their colour from the picture under them, with no live blur, and sit 5% above it. Off: the plain frosted fill.")),
                 toggle(APL.t("Slow Background Motion"), "bgMotion", APL.t("A slow camera move over the Home Screen images. Pretty, but it keeps the screen very busy and slows everything else down."))
             ], APL.t("Theme, Top Shelf, visual effects.")),
 

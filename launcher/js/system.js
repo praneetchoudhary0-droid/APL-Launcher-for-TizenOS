@@ -47,6 +47,7 @@
         smartHubTileSet: false,     // the Smart Hub tile was hidden once in this profile (it starts hidden)
         hubShelf: true,             // Top Shelf: the apps' own Smart Hub rows first (liveshelf.js)
         liveShelf: true,            //   then the content of the moment (TMDB / YouTube…), then shelfArt
+        liquidGlass: true,          // dock and Control Center slice the picture under them (glass.js)
         visualEffects: PREVIEW,     // blur / glass: costly on the screen, off by default
         gameWanted: false,          // Game Mode requested (applied when switching to an input)
         ccHintCount: 0,             // number of times the Control Center tip has been shown
