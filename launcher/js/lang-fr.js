@@ -408,6 +408,8 @@ window.APL_LANG_FR = {
     "Visual Effects": "Effets visuels",
     "Liquid Glass": "Verre liquide",
     "The dock and Control Center take their colour from the picture under them, with no live blur, and sit 5% above it. Off: the plain frosted fill.": "Le dock et le Centre de contrôle prennent leur couleur de l'image en dessous, sans flou en direct, et restent 5 % au-dessus. Désactivé : le simple fond givré.",
+    "Dynamic Backdrops": "Fonds dynamiques",
+    "An app with no artwork shows the film or series trending on it this week, with its title in the corner. One title per app, a new one as it rotates, kept for six hours.": "Une application sans visuel affiche le film ou la série tendance de la semaine, avec son titre dans le coin. Un titre par application, un nouveau à chaque rotation, conservé six heures.",
     "Blur and glass. Prettier but slower: off by default so the screen stays smooth.": "Flou et verre. Plus joli mais plus lent : désactivé par défaut pour que l'écran reste fluide.",
     "Power and Energy Saving": "Électricité et économie d'énergie",
     "Brightness Optimization": "Optimisation de la luminosité",

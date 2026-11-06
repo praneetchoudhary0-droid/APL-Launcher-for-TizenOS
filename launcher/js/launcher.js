@@ -72,10 +72,30 @@
     function artOf(app) { return black() ? null : app.bg; }
     function plain(app) { return black() && !app.shelfHtml; }
 
+    /* backdrops.js: the film or series trending on this app this week, one per
+       app and kept for six hours. It comes before the app's own artwork: an app
+       with no artwork has a generated sheet of light by the time it is drawn
+       (genart.js), and that sheet would otherwise hide the backdrop for good. */
+    function backdropPick(app) {
+        if (!app || !APL.backdrops || APL.sys.pref("dynamicBackdrops") === false) return null;
+        try { return APL.backdrops.pick(app.key); } catch (e) { return null; }
+    }
+
+    /* Whether the full-screen state has anything real to show: a trending frame
+       or the app's own artwork. Black mode keeps the plain background. */
+    function fullArt(app) {
+        if (plain(app)) return null;
+        var pick = backdropPick(app);
+        if (pick && pick.url) return pick.url;
+        return artOf(app);
+    }
+
     function backdropFor(app) {
+        if (plain(app)) return "#07080c";
+        var pick = backdropPick(app);
+        if (pick && pick.url) return "#000 center / cover no-repeat url('" + pick.url + "')";
         var bg = artOf(app);
         if (bg) return "#000 center / cover no-repeat url('" + bg + "')";
-        if (plain(app)) return "#07080c";
         // No artwork yet (genart.js draws it once): a glow in the app's colour on a dark background.
         var a = brandColour(app);
         return "radial-gradient(60% 70% at 50% 44%, " + rgba(a, 0.42) + ", rgba(0,0,0,0) 70%)," +
@@ -193,6 +213,31 @@
         else { im.onload = then; im.onerror = then; }
     }
 
+    /* ---------- what is on screen ---------- */
+    /* backdrops.js names the film or series in the corner: the app's name is
+       already on its tile, so the slate only appears when a real frame does. */
+    var capBox = null;
+    function captionText(pick) {
+        if (!capBox) {
+            capBox = document.createElement("div");
+            capBox.className = "bgcap";
+            document.body.appendChild(capBox);
+        }
+        if (!pick || !pick.title) { capBox.classList.remove("is-visible"); return; }
+        capBox.textContent = pick.year ? pick.title + "  \u00b7  " + pick.year : pick.title;
+        capBox.classList.add("is-visible");
+    }
+    function noteBackdrop(layer, app) {
+        var pick = APL.sys.pref("dynamicBackdrops") === false ? null : backdropPick(app);
+        /* A Top Shelf item (liveshelf.js) can take the screen a second later: the
+           slate only names a frame that is really under it, never the app. */
+        if (!pick || !layer || String(layer.style.background || "").indexOf(pick.url) === -1) {
+            captionText(null);
+            return;
+        }
+        captionText(pick);
+    }
+
     /* Drawing a full-screen image takes 100 ms on the M8, whatever the effect: the dock
        backgrounds stay ready in invisible layers, and switching between them redraws nothing. */
     var layers = {};
@@ -201,7 +246,7 @@
         var l = document.createElement("div");
         l.className = "bg";
         l.style.background = backdropFor(app);
-        if (!artOf(app) && !plain(app)) l.appendChild(brandCard(app));
+        if (!fullArt(app) && !plain(app)) l.appendChild(brandCard(app));
         l.dataset.app = app.id;
         dom.bgA.parentNode.insertBefore(l, dom.bgA);
         layers[app.id] = l;
@@ -217,6 +262,7 @@
     }
     function showLayer(next, app) {
         next.dataset.app = app.id;
+        noteBackdrop(next, app);
         if (next === bgActive) return;
         if (artOf(app)) motion(next); else next.classList.remove("is-motion");
         fadeTo(next);
@@ -249,7 +295,9 @@
 
     var backdropToken = 0;
     function setBackdrop(app) {
-        var image = artOf(app);
+        /* A trending frame (backdrops.js) is a real picture, so the frosted dock
+           and the drawer take their colour from it as well. */
+        var image = fullArt(app);
         wantBlur(image && (image === app.bg ? app.bgBlur || app.bg : image), app, image && (image === app.bg ? app.bgBlur || null : image));
         var token = ++backdropToken;
         if (apps.indexOf(app) < DOCK_SIZE) { showLayer(layerFor(app), app); return; }
@@ -425,6 +473,7 @@
         motion(next);
         wantBlur(item.bgSmall || null, app, null);
         fadeTo(next);
+        captionText(null);            // the Top Shelf names its own film or series
         shelfInfo(item);
     }
 
@@ -482,7 +531,7 @@
         // the blurred background; it no longer changes from one app to the next (and nothing to decode).
         if (!inDock) { clearTimeout(bgTimer); return; }
         var live = APL.live && APL.live.hasSource(app);
-        dom.hint.classList.toggle("is-visible", (!!artOf(app) || live) && APL.sys.pref("showHint"));
+        dom.hint.classList.toggle("is-visible", (!!fullArt(app) || live) && APL.sys.pref("showHint"));
         if (live && bgActive.dataset.app && bgActive.dataset.app.indexOf(app.id + "#") === 0) return;   // already shown
         if (bgActive.dataset.app === app.id) return;
         shelfInfo(null);
@@ -677,6 +726,20 @@
         nav.focus(want);
     }
 
+    /* backdrops.js hands each app on the dock row a different trending title, so
+       two tiles never open on the same frame. The catalogue is read from the
+       screen's cache at once and fetched in the background; when it changes the
+       layers are rebuilt, because they were painted from the older picks. */
+    function syncBackdrops() {
+        if (!APL.backdrops || !apps.length) return;
+        var ids = [], i;
+        for (i = 0; i < apps.length && i < DOCK_SIZE; i++) ids.push(apps[i].key);
+        APL.backdrops.assign(ids);
+        if (mode === "grid" || !nav) return;
+        dropLayers();
+        setBackdrop(apps[nav.index] || apps[0]);
+    }
+
     function createNav() {
         var K = APL.KEY;
         nav = new APL.Nav({
@@ -691,7 +754,7 @@
                 if (dir === "up" && mode === "shelf" && APL.widgets && APL.widgets.focusCards()) return;
                 // … otherwise full screen (only if the app has artwork)
                 var a = apps[nav.index];
-                if (dir === "up" && mode === "shelf" && (a.bg || (APL.live && APL.live.hasSource(a)))) setMode("full");
+                if (dir === "up" && mode === "shelf" && (fullArt(a) || (APL.live && APL.live.hasSource(a)))) setMode("full");
             },
             onKey: function (code) {
                 if (editing) return editKey(code);
@@ -770,6 +833,11 @@
             setTimeout(function () { if (APL.autoArt) APL.autoArt.run(allApps, render); }, 3500);
             showCcHint();
             render();
+            /* backdrops.js: the cached catalogue is read straight away (so the
+               first frames are there at once) and this runs again when the
+               background fetch brings a new one. */
+            if (APL.backdrops) APL.backdrops.start(syncBackdrops);
+            APL.sys.onPref("dynamicBackdrops", syncBackdrops);
             if (APL.overlay) APL.overlay.start();
             slowKeyRepeat(8);
             setTimeout(function () { bootCleanup(8); }, 25000);

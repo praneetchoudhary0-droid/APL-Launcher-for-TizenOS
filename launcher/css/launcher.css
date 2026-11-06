@@ -51,6 +51,10 @@ html, body {
     background-color: #000;
     background-size: cover;
     background-position: center;
+    /* An inline `background:` shorthand resets this to repeat, and a frame that
+       is not exactly 16:9 (JustWatch serves 1920x878 as well) then shows a
+       second copy at the bottom of the screen. */
+    background-repeat: no-repeat;
     opacity: 0;
     transform: scale(1);
     transition: opacity 300ms ease;                  /* FADE_MS in launcher.js */
@@ -181,6 +185,29 @@ html, body {
 .shelfinfo__open { display: none; margin-top: 14px; font-size: 24px; font-weight: 600; color: rgba(255, 255, 255, 0.95); }
 .mode-full .shelfinfo.can-open .shelfinfo__open { display: block; }
 .shelfinfo__meta { margin-top: 6px; font-size: 26px; font-weight: 500; color: rgba(255, 255, 255, 0.88); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* The corner slate: which film or series the dynamic backdrop is showing
+   (backdrops.js). Top left, opposite the clock; the app's name is already on
+   its tile, so this never repeats it. */
+.bgcap {
+    position: fixed;
+    left: 62px;
+    top: 122px;              /* under the Search pill, which keeps the corner */
+    z-index: 6;
+    max-width: 1200px;
+    font-size: 46px;
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.5px;
+    color: #fff;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 400ms ease;
+    text-shadow: 0 3px 22px rgba(0, 0, 0, 0.8), 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+.bgcap.is-visible { opacity: 1; }
+.mode-grid .bgcap, .mode-grid .bgcap.is-visible { opacity: 0; }
+.has-cc .bgcap { opacity: 0; }
 
 /* ===================== HOME (dock + rows) ===================== */
 .home {
