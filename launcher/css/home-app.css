@@ -112,7 +112,7 @@
   z-index: 2;
   margin: 76px 0 24px 24px;
   padding: 16px 10px;
-  border-radius: 26px;
+  border-radius: 30px;
   background: rgba(38, 36, 34, .26);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.09);
   overflow-y: auto;
@@ -128,7 +128,7 @@
   height: 50px;
   padding: 0 14px;
   margin: 1px 0;
-  border-radius: 11px;
+  border-radius: 15px;
   font-size: 20px;
   font-weight: 500;
   color: rgba(255,255,255,.90);
@@ -248,7 +248,7 @@
   justify-content: flex-start;
   gap: 12px;
   padding: 14px 16px;
-  border-radius: 18px;
+  border-radius: 24px;
   background: rgba(255,255,255,.17);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.10);
   color: #fff;
@@ -343,7 +343,7 @@
   right: 56px; bottom: 48px;
   z-index: 5;
   width: 780px;
-  border-radius: 28px;
+  border-radius: 32px;
   padding-bottom: 12px;
   /* Nearly opaque: a lit tile under a translucent panel shows through the
      rows, and the layout sheet is tall enough to sit over one. */
@@ -365,7 +365,7 @@
 
 .ha-row {
   display: flex; align-items: center; gap: 10px;
-  height: 52px; padding: 0 15px; border-radius: 13px;
+  height: 52px; padding: 0 15px; border-radius: 17px;
   font-size: 20px; line-height: 25px;
   background: rgba(255,255,255,.055);
 }
@@ -391,7 +391,7 @@
 
 .ha-name {
   margin-left: auto; width: 62%; height: 34px; padding: 0 12px;
-  border: 0; border-radius: 9px; outline: none;
+  border: 0; border-radius: 12px; outline: none;
   background: rgba(0,0,0,.32); color: #fff; font: inherit; font-size: 19px;
 }
 .ha-name:focus { box-shadow: inset 0 0 0 2px rgba(255,255,255,.75); }
@@ -623,14 +623,27 @@ body .home-app {
   transform-origin: center;
 }
 
-.home-app .ha-tile {
+/* Off and on are told apart by presence, not by colour: an on tile is the
+   glass as drawn - a grey fill, a white glyph, a white name. An off tile steps
+   back out of the glass and keeps only its hairline, its badge and name faded,
+   so a room's idle accessories read as quiet rather than as buttons. */
+.home-app .ha-tile:not(.is-focus) {
   background: linear-gradient(180deg, rgba(255,255,255,.20), rgba(255,255,255,.10));
   box-shadow: inset 0 1px 0 rgba(255,255,255,.34), inset 0 -1px 0 rgba(0,0,0,.20), 0 10px 24px rgba(0,0,0,.18);
 }
 
-.home-app .ha-tile.is-on {
-  background: linear-gradient(180deg, rgba(255,255,255,.28), rgba(255,255,255,.13));
+.home-app .ha-tile:not(.is-focus):not(.is-on) {
+  background: rgba(255,255,255,.045);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.15);
 }
+
+.home-app .ha-tile:not(.is-focus):not(.is-on) .ha-chip { background: rgba(255,255,255,.07); }
+
+.home-app .ha-tile:not(.is-focus):not(.is-on) .ha-chip .ico { color: rgba(255,255,255,.45); }
+
+.home-app .ha-tile:not(.is-focus):not(.is-on) .ha-tile-name { color: rgba(255,255,255,.62); }
+
+.home-app .ha-tile:not(.is-focus):not(.is-on) .ha-tile-state { color: rgba(255,255,255,.45); }
 
 .home-app .ha-tile-name,
 .home-app .ha-tile-state,
@@ -638,7 +651,8 @@ body .home-app {
   text-shadow: 0 1px 3px rgba(0,0,0,.6);
 }
 
-.home-app .ha-tile.is-focus {
+.home-app .ha-tile.is-focus,
+.home-app .ha-tile.is-on.is-focus {
   background: #fff;
   box-shadow: inset 0 0 0 3px #fff, 0 0 0 3px rgba(255,255,255,.22), 0 14px 34px rgba(0,0,0,.34);
 }
