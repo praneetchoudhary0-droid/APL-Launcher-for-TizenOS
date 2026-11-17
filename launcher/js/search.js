@@ -1,32 +1,24 @@
 /* ============================================================
    search.js — Search, the Apple TV way.
 
-   A row of letters at the top, the matching apps below, updated at every
-   letter, then the films and series that stream in the screen's country
-   (liveshelf.js asks TMDB/JustWatch): OK on one opens the service that has
-   it. When no direct link to the title is known, it opens the app, as the
-   Home Screen does. OK on a letter types it, OK on an app opens it. The
-   remote's digits and a keyboard (PC preview) type too. Opened with ▲ from
-   the full screen Top Shelf (▲ from the dock, then ▲ again), or from the
-   Control Center. A magnifier at the top left of the Home Screen, across
-   from the status pill, shows it's up there; in full screen it reads
-   "▲ Search".
-   Apps only from the launcher: those in folders too, and the hidden ones
-   with Settings › Home Screen › Search Hidden Apps.
+   Search field at top. Below: three tabs — Movies, TV Shows, Apps.
+   Each tab shows its own results (trending when empty, matches when typed).
+   Remote digits and PC keyboard type into the field. ▲ from full-screen
+   Top Shelf or Control Center opens it. Magnifier at top left shows it's there.
    ============================================================ */
 (function (global) {
     "use strict";
 
     var APL = global.APL, K = APL.KEY;
-    var root, fieldEl, resultsEl, emptyEl, filmsEl, filmHead, noteEl, nav;
+    var root, fieldEl, tabsEl, resultsEl, emptyEl, noteEl, nav;
     var isOpen = false, query = "", found = [];
-    var appTiles = [], filmTiles = [], filmToken = 0, filmTimer = null;
+    var appTiles = [], movieTiles = [], showTiles = [], filmToken = 0, filmTimer = null;
+    var currentTab = "movies"; // "movies", "shows", "apps"
+    var tabButtons = {};
 
-    /* PC preview: the mouse does what the remote does — the magnifier opens Search,
-       a letter types it, a tile opens. On the screen the keys are the only input. */
     function clickable(node, fn) {
         if (!APL.sys.PREVIEW) return;
-        node.style.pointerEvents = "auto";        // the rules keep the remote out of it
+        node.style.pointerEvents = "auto";
         node.addEventListener("click", function (e) { e.preventDefault(); fn(); });
     }
     function el(tag, cls, text) {
@@ -35,7 +27,6 @@
         if (text !== undefined) e.textContent = text;
         return e;
     }
-    /* Lowercase, without accents: "é" finds "e", "Arte" finds "arte". */
     function norm(s) {
         s = String(s || "").toLowerCase();
         return s.normalize ? s.normalize("NFD").replace(/[̀-ͯ]/g, "") : s;
@@ -47,7 +38,6 @@
             return !a.folder && hidden.indexOf(a.id) === -1;
         });
     }
-    /* The name's start first, then the start of a word in it, then anywhere. Nothing typed: the recent apps. */
     function match(q) {
         var all = candidates();
         if (!q) {
@@ -64,7 +54,6 @@
         return start.concat(word, inside);
     }
 
-    /* The catalog's key ("primevideo", "appletv") is what the providers in liveshelf.js name. */
     function appsByKey() {
         var map = {};
         ((APL.allApps && APL.allApps()) || []).forEach(function (a) { if (a.key) map[a.key] = a; });
@@ -80,25 +69,46 @@
         fieldEl.placeholder = APL.t("Search");
         fieldEl.setAttribute("autocomplete", "off");
         fieldEl.setAttribute("spellcheck", "false");
+
+        tabsEl = el("div", "search__tabs");
         resultsEl = el("div", "search__results");
         emptyEl = el("p", "search__empty");
-        filmHead = el("p", "search__films-head", APL.t("Movies & shows"));
-        filmsEl = el("div", "search__films");
         noteEl = el("p", "search__note");
-        root.appendChild(fieldEl); root.appendChild(resultsEl);
-        root.appendChild(emptyEl); root.appendChild(filmHead); root.appendChild(filmsEl);
-        root.appendChild(noteEl);
-        /* The preview has no TMDB key: say why searching a real film finds nothing. */
+
+        root.appendChild(fieldEl); root.appendChild(tabsEl); root.appendChild(resultsEl);
+        root.appendChild(emptyEl); root.appendChild(noteEl);
+
         if (APL.sys.PREVIEW && (!APL.live || !APL.live.keys || !APL.live.keys().tmdb)) {
             noteEl.textContent = APL.t("Preview: demo titles. Add a TMDB key in js/keys.local.js for the real ones.");
         }
         document.body.appendChild(root);
 
+        /* Build tabs */
+        var tabs = [
+            { id: "movies", label: APL.t("Movies") },
+            { id: "shows", label: APL.t("TV Shows") },
+            { id: "apps", label: APL.t("Apps") }
+        ];
+        tabs.forEach(function (tab) {
+            var btn = el("button", "search__tab" + (tab.id === currentTab ? " is-active" : ""), tab.label);
+            btn.dataset.tab = tab.id;
+            tabButtons[tab.id] = btn;
+            tabsEl.appendChild(btn);
+            clickable(btn, function () { switchTab(tab.id); });
+        });
+
         fieldEl.addEventListener("input", refresh);
         fieldEl.addEventListener("keydown", function (e) {
             var c = e.keyCode;
-            if (c === K.ENTER || c === K.DOWN && filmTiles.length) { e.preventDefault(); e.stopPropagation(); focusFirstFilm(); }
-            else if (c === 27 || c === 10009) { e.preventDefault(); e.stopPropagation(); close(); }
+            if (c === K.ENTER) {
+                e.preventDefault(); e.stopPropagation();
+                focusFirstResult();
+            } else if (c === 27 || c === 10009) {
+                e.preventDefault(); e.stopPropagation(); close();
+            } else if (c === K.LEFT || c === K.RIGHT) {
+                e.preventDefault(); e.stopPropagation();
+                switchTabByKey(c === K.LEFT ? -1 : 1);
+            }
         });
         fieldEl.addEventListener("blur", function () { root.classList.remove("is-typing"); });
 
@@ -113,6 +123,11 @@
                 if (code >= 48 && code <= 57) { type(String(code - 48)); return true; }
                 if (code === K.BACKSPACE && e.key === "Backspace") { erase(); return true; }
                 if (e.key && e.key.length === 1 && /[\w ]/.test(e.key)) { type(norm(e.key)); return true; }
+                if (code === K.LEFT || code === K.RIGHT) {
+                    e.preventDefault(); e.stopPropagation();
+                    switchTabByKey(code === K.LEFT ? -1 : 1);
+                    return true;
+                }
                 return false;
             }
         });
@@ -121,14 +136,33 @@
     function type(c) { if (query.length < 30) { query += c; refresh(); } }
     function erase() { if (query) { query = query.slice(0, -1); refresh(); } }
 
+    function switchTab(id) {
+        if (id === currentTab) return;
+        currentTab = id;
+        Object.keys(tabButtons).forEach(function (k) {
+            tabButtons[k].classList.toggle("is-active", k === id);
+        });
+        refresh();
+    }
+    function switchTabByKey(dir) {
+        var order = ["movies", "shows", "apps"];
+        var idx = order.indexOf(currentTab);
+        var next = order[(idx + dir + order.length) % order.length];
+        switchTab(next);
+    }
+
     function relayout(keep) {
-        var list = [fieldEl].concat(appTiles, filmTiles), at = keep ? list.indexOf(keep) : -1, cur = nav.current && nav.current();
-        if (at < 0 && cur) at = list.indexOf(cur);
-        nav.setTiles(list);
+        var tiles = [fieldEl];
+        if (currentTab === "movies") tiles = tiles.concat(movieTiles);
+        else if (currentTab === "shows") tiles = tiles.concat(showTiles);
+        else tiles = tiles.concat(appTiles);
+        var at = keep ? tiles.indexOf(keep) : -1, cur = nav.current && nav.current();
+        if (at < 0 && cur) at = tiles.indexOf(cur);
+        nav.setTiles(tiles);
         nav.focus(at >= 0 ? at : 0);
     }
 
-    function filmTile(f, app) {
+    function filmTile(f, app, kind) {
         var t = el("div", "search__film");
         var art = f.backdrop || f.poster;
         if (art) t.style.backgroundImage = "url('" + art + "')";
@@ -136,40 +170,43 @@
         t.appendChild(el("span", "search__film__app", app.name));
         t._film = f;
         t._filmApp = app;
+        t._kind = kind;
         clickable(t, function () { openFilm(f, app); });
         return t;
     }
 
-    /* The films the screen's services have: each one is only shown when its service is installed.
-       Shows multiple results per service (up to 12 total). */
     function setFilms(list) {
         var by = appsByKey(), keep = nav.current && nav.current();
-        filmsEl.innerHTML = "";
-        filmTiles = [];
-        var count = 0;
+        resultsEl.innerHTML = "";
+        movieTiles = [];
+        showTiles = [];
+        var movieCount = 0, showCount = 0;
         (list || []).forEach(function (f) {
-            if (count >= 12) return;
             var app = null;
             (f.providers || []).some(function (p) { if (p.key && by[p.key]) { app = by[p.key]; return true; } return false; });
             if (!app) return;
-            var t = filmTile(f, app);
-            filmTiles.push(t);
-            filmsEl.appendChild(t);
-            count++;
+            var kind = f.kind || (f.media_type === "tv" ? "tv" : "movie");
+            var t = filmTile(f, app, kind);
+            if (kind === "tv" && showCount < 12) {
+                showTiles.push(t);
+                showCount++;
+                resultsEl.appendChild(t);
+            } else if (kind === "movie" && movieCount < 12) {
+                movieTiles.push(t);
+                movieCount++;
+                resultsEl.appendChild(t);
+            }
         });
-        var on = filmTiles.length > 0;
-        filmsEl.style.display = on ? "" : "none";
-        filmHead.style.display = on ? "" : "none";
+        var hasMovies = movieTiles.length > 0;
+        var hasShows = showTiles.length > 0;
+        var on = hasMovies || hasShows;
         if (on) {
             var q = norm(query).replace(/\s+/g, " ").replace(/^ /, "");
-            filmHead.textContent = q.length < 2 ? APL.t("Trending This Week") : APL.t("Movies & shows");
             emptyEl.textContent = "";
         }
         relayout(keep);
     }
 
-    /* Asked 450 ms after the last letter, and only the last answer is drawn.
-       Empty/short query also calls searchTitles to show trending/popular. */
     function askFilms(q) {
         clearTimeout(filmTimer);
         var token = ++filmToken;
@@ -181,35 +218,38 @@
         }, 450);
     }
 
-    function focusFirstFilm() {
-        if (filmTiles.length) {
-            nav.focus(1 + appTiles.length); // field + apps = first film index
-        }
+    function focusFirstResult() {
+        var tiles = [];
+        if (currentTab === "movies") tiles = movieTiles;
+        else if (currentTab === "shows") tiles = showTiles;
+        else tiles = appTiles;
+        if (tiles.length) nav.focus(1); // 0 = field, 1 = first result
     }
 
-    /* Field and results again; the focus stays where it is (on the field while typing). */
     function refresh() {
         var q = norm(query).replace(/\s+/g, " ").replace(/^ /, "");
         fieldEl.value = query;
         fieldEl.classList.toggle("is-empty", !query);
         found = match(q);
         var shown = q && found.length > 12 ? found.slice(0, 12) : found;
-        resultsEl.innerHTML = "";
-        appTiles = shown.map(function (app) {
-            var t = APL.makeTile(app, 1);
-            t._app = app;
-            resultsEl.appendChild(t);
-            clickable(t, function () { close(); APL.openApp(app); });
-            return t;
-        });
-        emptyEl.textContent = !q ? (found.length ? APL.t("Recently Used") : "") :
-            found.length ? "" : APL.t("No apps found for “{q}”", { q: query.trim() });
-        root.classList.toggle("has-recent", !q && found.length > 0);
-        askFilms(q);
+        if (currentTab === "apps") {
+            resultsEl.innerHTML = "";
+            appTiles = shown.map(function (app) {
+                var t = APL.makeTile(app, 1);
+                t._app = app;
+                resultsEl.appendChild(t);
+                clickable(t, function () { close(); APL.openApp(app); });
+                return t;
+            });
+            emptyEl.textContent = !q ? (found.length ? APL.t("Recently Used") : "") :
+                found.length ? "" : APL.t("No apps found for “{q}”", { q: query.trim() });
+            root.classList.toggle("has-recent", !q && found.length > 0);
+        } else {
+            askFilms(q);
+        }
+        relayout();
     }
 
-    /* A service that takes the title itself (a payload to APL.launchDeepLink) goes here first.
-       Until one is known to work on the screen, OK opens the app, as from the Home Screen. */
     function openFilm(f, app) {
         close();
         if (APL.sys.PREVIEW) {
@@ -227,14 +267,14 @@
     function open() {
         if (!root) buildDom();
         query = "";
+        currentTab = "movies";
         nav.setTiles([]);
         refresh();
         nav.focus(0);
         root.classList.add("is-open");
-        document.body.classList.add("has-search");          // the Home Screen steps back (launcher.css)
+        document.body.classList.add("has-search");
         APL.pushNav(nav);
         isOpen = true;
-        /* Immediately show trending/popular when search opens (empty query) */
         askFilms("");
     }
     function close() {
@@ -245,7 +285,6 @@
         isOpen = false;
     }
 
-    /* The magnifier at the top left (launcher.css): "▲ Search" in full screen, where ▲ opens it (launcher.js). */
     function addHint() {
         var h = el("div", "search-hint");
         h.innerHTML = '<span class="search-hint__chevron"></span>' + APL.icon("search", 30, 2.4);

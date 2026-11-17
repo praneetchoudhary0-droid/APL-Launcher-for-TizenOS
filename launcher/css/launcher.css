@@ -1015,20 +1015,23 @@ html, body {
 .search.is-open { opacity: 1; pointer-events: auto; }
 .search__dim { position: absolute; top: 0; right: 0; bottom: 0; left: 0; background: rgba(6, 8, 14, 0.82); -webkit-backdrop-filter: blur(40px) saturate(1.4); backdrop-filter: blur(40px) saturate(1.4); }
 .perf .search__dim { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(6, 8, 14, 0.94); }
-.search__field { position: absolute; top: 96px; left: 90px; right: 90px; height: 84px; padding: 0 20px; box-sizing: border-box; border: 0; border-radius: 22px; outline: none;
-    background: transparent; color: #fff; caret-color: #fff; font: inherit; font-size: 64px; font-weight: 600; letter-spacing: -0.5px; transition: background 150ms ease, transform 150ms var(--ease); }
+.search__field { position: absolute; top: 64px; left: 90px; right: 90px; height: 72px; padding: 0 20px; box-sizing: border-box; border: 0; border-radius: 22px; outline: none;
+    background: transparent; color: #fff; caret-color: #fff; font: inherit; font-size: 56px; font-weight: 600; letter-spacing: -0.5px; transition: background 150ms ease, transform 150ms var(--ease); }
 .search__field::placeholder { color: rgba(255, 255, 255, 0.35); }
 .search__field.is-focused { background: rgba(255, 255, 255, 0.12); }
 .search.is-typing .search__field { background: rgba(255, 255, 255, 0.08); }
-.search__results { position: absolute; top: 220px; left: 85px; display: grid; grid-template-columns: repeat(var(--cols, 6), var(--tile-w)); column-gap: var(--gap-x); row-gap: 90px; max-height: 320px; overflow: hidden; }
+.search__tabs { position: absolute; top: 156px; left: 90px; right: 90px; display: flex; gap: 16px; height: 56px; }
+.search__tab { flex: 1; height: 56px; border: 0; border-radius: 14px; background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.6); font: inherit; font-size: 24px; font-weight: 500; cursor: pointer; transition: background 150ms ease, color 150ms ease, transform 150ms var(--ease); }
+.search__tab:hover { background: rgba(255, 255, 255, 0.15); color: #fff; }
+.search__tab.is-active { background: #fff; color: #111; transform: scale(1.02); }
+.search__tab.is-focused { background: #fff; color: #111; transform: scale(1.05); }
+.search__results { position: absolute; top: 232px; left: 85px; right: 85px; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 24px; max-height: 720px; overflow-y: auto; }
 .search__results .tile__label { opacity: 1; }
-.search__films-head { position: absolute; top: 580px; left: 90px; font-size: 26px; font-weight: 600; color: rgba(255, 255, 255, 0.55); }
-.search__films { position: absolute; top: 622px; left: 85px; right: 85px; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 24px; max-height: 350px; overflow: hidden; }
-.search__film { position: relative; width: 260px; height: 146px; border-radius: 18px; background: #1a1a2e; display: flex; flex-direction: column; justify-content: flex-end; padding: 16px; box-sizing: border-box; background-size: cover; background-position: center; transition: transform 150ms var(--ease); }
-.search__film.is-focused { transform: scale(1.08); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+.search__film { position: relative; width: 100%; min-width: 240px; height: 146px; border-radius: 18px; background: #1a1a2e; display: flex; flex-direction: column; justify-content: flex-end; padding: 16px; box-sizing: border-box; background-size: cover; background-position: center; transition: transform 150ms var(--ease); }
+.search__film.is-focused { transform: scale(1.05); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
 .search__film__title { font-size: 22px; font-weight: 600; color: #fff; margin-bottom: 4px; }
 .search__film__app { font-size: 18px; color: rgba(255, 255, 255, 0.65); }
-.search__note { position: absolute; top: 940px; left: 90px; margin: 0; font-size: 18px; color: rgba(255, 255, 255, 0.38); }
+.search__note { position: absolute; bottom: 60px; left: 90px; right: 90px; margin: 0; font-size: 18px; color: rgba(255, 255, 255, 0.38); text-align: center; }
 .search__empty { position: absolute; top: 180px; left: 90px; font-size: 26px; font-weight: 600; color: rgba(255, 255, 255, 0.6); }
 .has-search .shelfinfo, .has-search .home, .has-search .status, .has-search .hint { opacity: 0; }
 /* Search's hint, top left across from the status pill: a magnifier on the Home Screen, "▲ Search" in full screen.
