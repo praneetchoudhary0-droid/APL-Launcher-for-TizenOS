@@ -939,11 +939,48 @@
                 if (key) out.providers.push({
                     key: key,
                     name: p.provider_name,
-                    link: p.link || (p.tmdb_id ? "tmdb://" + kind + "/" + r.id : "")
+                    link: buildDeepLink(key, r.id, kind)
                 });
             });
             return out;
         }, function () { return out; });
+    }
+    function buildDeepLink(key, tmdbId, kind) {
+        // Build service-specific deep link payloads for APL.launchDeepLink
+        switch (key) {
+            case "primevideo":
+                // Prime Video uses GTI; TMDB doesn't provide it directly
+                // Fallback: eden_resume with TMDB ID
+                return JSON.stringify({ action: "play", tmdbId: tmdbId, tmdbType: kind });
+            case "appletv":
+                // Apple TV+ uses appletv://video/<id> or eden_resume
+                return JSON.stringify({ action: "play", tmdbId: tmdbId, tmdbType: kind });
+            case "disneyplus":
+            case "hotstar":
+            case "jiohotstar":
+                return JSON.stringify({ action: "play", tmdbId: tmdbId, tmdbType: kind });
+            case "netflix":
+                return JSON.stringify({ action: "play", tmdbId: tmdbId, tmdbType: kind });
+            case "sonyliv":
+                return JSON.stringify({ action: "play", tmdbId: tmdbId, tmdbType: kind });
+            case "hbomax":
+            case "max":
+                return JSON.stringify({ action: "play", tmdbId: tmdbId, tmdbType: kind });
+            case "canalplus":
+                return JSON.stringify({ action: "play", tmdbId: tmdbId, tmdbType: kind });
+            case "arte":
+                return JSON.stringify({ action: "play", tmdbId: tmdbId, tmdbType: kind });
+            case "paramountplus":
+                return JSON.stringify({ action: "play", tmdbId: tmdbId, tmdbType: kind });
+            case "crunchyroll":
+                return JSON.stringify({ action: "play", tmdbId: tmdbId, tmdbType: kind });
+            case "rakutentv":
+                return JSON.stringify({ action: "play", tmdbId: tmdbId, tmdbType: kind });
+            case "plutotv":
+                return JSON.stringify({ action: "play", tmdbId: tmdbId, tmdbType: kind });
+            default:
+                return JSON.stringify({ action: "play", tmdbId: tmdbId, tmdbType: kind });
+        }
     }
     function searchTitles(q) {
         q = String(q || "").trim().toLowerCase();

@@ -307,7 +307,14 @@
        the payload goes base64, Vetro doubles backslashes. */
     function launchDeepLink(id, data) {
         if (!/^[A-Za-z0-9]{10}[.][A-Za-z0-9._-]+$/.test(id)) return Promise.reject(new Error(global.APL.t("Can't launch the app")));
-        var b64 = global.btoa(unescape(encodeURIComponent(JSON.stringify({ values: data }))));
+        var payload;
+        try {
+            var parsed = typeof data === "string" ? JSON.parse(data) : data;
+            payload = JSON.stringify({ values: parsed });
+        } catch (e) {
+            payload = JSON.stringify({ values: data });
+        }
+        var b64 = global.btoa(unescape(encodeURIComponent(payload)));
         var bin = "/opt/usr/apps/" + id.split(".")[0] + "/bin/" + id;
         return global.APL.sys.exec("for p in $(ps -eo pid,args | awk '$2 == \"" + bin + "\" {print $1}'); do kill $p; done; sleep 1; " +
             "P=$(printf '%s' '" + b64 + "' | base64 -d); " +
