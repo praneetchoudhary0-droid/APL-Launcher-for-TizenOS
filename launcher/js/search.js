@@ -18,9 +18,8 @@
     "use strict";
 
     var APL = global.APL, K = APL.KEY;
-    var LETTERS = "abcdefghijklmnopqrstuvwxyz0123456789".split("");
-    var root, fieldEl, keysEl, resultsEl, emptyEl, filmsEl, filmHead, noteEl, nav;
-    var isOpen = false, query = "", keys = [], found = [];
+    var root, fieldEl, resultsEl, emptyEl, filmsEl, filmHead, noteEl, nav;
+    var isOpen = false, query = "", found = [];
     var appTiles = [], filmTiles = [], filmToken = 0, filmTimer = null;
 
     /* PC preview: the mouse does what the remote does — the magnifier opens Search,
