@@ -75,14 +75,18 @@
     function buildDom() {
         root = el("section", "search");
         root.appendChild(el("div", "search__dim"));
-        fieldEl = el("div", "search__field");
-        keysEl = el("div", "search__keys");
+        fieldEl = el("input", "search__field");
+        fieldEl.type = "text";
+        fieldEl.maxLength = 30;
+        fieldEl.placeholder = APL.t("Search");
+        fieldEl.setAttribute("autocomplete", "off");
+        fieldEl.setAttribute("spellcheck", "false");
         resultsEl = el("div", "search__results");
         emptyEl = el("p", "search__empty");
         filmHead = el("p", "search__films-head", APL.t("Movies & shows"));
         filmsEl = el("div", "search__films");
         noteEl = el("p", "search__note");
-        root.appendChild(fieldEl); root.appendChild(keysEl); root.appendChild(resultsEl);
+        root.appendChild(fieldEl); root.appendChild(resultsEl);
         root.appendChild(emptyEl); root.appendChild(filmHead); root.appendChild(filmsEl);
         root.appendChild(noteEl);
         /* The preview has no TMDB key: say why searching a real film finds nothing. */
@@ -91,43 +95,35 @@
         }
         document.body.appendChild(root);
 
-        LETTERS.forEach(function (c) { keys.push({ type: c, label: c }); });
-        keys.push({ type: " ", label: APL.t("Space"), wide: true });
-        keys.push({ del: true, label: APL.t("Delete"), wide: true });
-        keys.forEach(function (k) {
-            var t = el("div", "search__key" + (k.wide ? " search__key--wide" : ""), k.label);
-            k.el = t;
-            keysEl.appendChild(t);
-            clickable(t, function () { press(k); });
+        fieldEl.addEventListener("input", refresh);
+        fieldEl.addEventListener("keydown", function (e) {
+            var c = e.keyCode;
+            if (c === K.ENTER || c === K.DOWN && filmTiles.length) { e.preventDefault(); e.stopPropagation(); focusFirstFilm(); }
+            else if (c === 27 || c === 10009) { e.preventDefault(); e.stopPropagation(); close(); }
         });
+        fieldEl.addEventListener("blur", function () { root.classList.remove("is-typing"); });
 
         nav = new APL.Nav({
             onSelect: function (i) {
                 var t = nav.tiles[i];
-                if (t._key) { press(t._key); return; }
                 if (t._film) { openFilm(t._film, t._filmApp); return; }
                 if (t._app) { var app = t._app; close(); APL.openApp(app); }
             },
             onBack: close,
             onKey: function (code, e) {
-                if (code >= 48 && code <= 57) { type(String(code - 48)); return true; }             // the remote's digits
-                if (code === K.BACKSPACE && e.key === "Backspace") { erase(); return true; }        // a keyboard's ⌫
+                if (code >= 48 && code <= 57) { type(String(code - 48)); return true; }
+                if (code === K.BACKSPACE && e.key === "Backspace") { erase(); return true; }
                 if (e.key && e.key.length === 1 && /[\w ]/.test(e.key)) { type(norm(e.key)); return true; }
                 return false;
             }
         });
     }
 
-    function press(k) { if (k.del) erase(); else type(k.type); }
     function type(c) { if (query.length < 30) { query += c; refresh(); } }
     function erase() { if (query) { query = query.slice(0, -1); refresh(); } }
 
-    /* Every focusable thing on screen, in reading order: the letters, the apps, then the films. */
-    function allTiles() {
-        return keys.map(function (k) { return k.el; }).concat(appTiles, filmTiles);
-    }
     function relayout(keep) {
-        var list = allTiles(), at = keep ? list.indexOf(keep) : -1, cur = nav.current && nav.current();
+        var list = [fieldEl].concat(appTiles, filmTiles), at = keep ? list.indexOf(keep) : -1, cur = nav.current && nav.current();
         if (at < 0 && cur) at = list.indexOf(cur);
         nav.setTiles(list);
         nav.focus(at >= 0 ? at : 0);
@@ -145,18 +141,22 @@
         return t;
     }
 
-    /* The films the screen's services have: each one is only shown when its service is installed. */
+    /* The films the screen's services have: each one is only shown when its service is installed.
+       Shows multiple results per service (up to 12 total). */
     function setFilms(list) {
         var by = appsByKey(), keep = nav.current && nav.current();
         filmsEl.innerHTML = "";
         filmTiles = [];
+        var count = 0;
         (list || []).forEach(function (f) {
+            if (count >= 12) return;
             var app = null;
             (f.providers || []).some(function (p) { if (p.key && by[p.key]) { app = by[p.key]; return true; } return false; });
             if (!app) return;
             var t = filmTile(f, app);
             filmTiles.push(t);
             filmsEl.appendChild(t);
+            count++;
         });
         var on = filmTiles.length > 0;
         filmsEl.style.display = on ? "" : "none";
@@ -177,14 +177,19 @@
         }, 450);
     }
 
-    /* Field and results again; the focus stays where it is (on the letter just typed). */
+    function focusFirstFilm() {
+        if (filmTiles.length) {
+            nav.focus(1 + appTiles.length); // field + apps = first film index
+        }
+    }
+
+    /* Field and results again; the focus stays where it is (on the field while typing). */
     function refresh() {
         var q = norm(query).replace(/\s+/g, " ").replace(/^ /, "");
-        fieldEl.textContent = query || APL.t("Search");
+        fieldEl.value = query;
         fieldEl.classList.toggle("is-empty", !query);
         found = match(q);
-        /* One row while films are on screen: the letters and the films keep their place. */
-        var shown = q && found.length > 6 ? found.slice(0, 6) : found;
+        var shown = q && found.length > 8 ? found.slice(0, 8) : found;
         resultsEl.innerHTML = "";
         appTiles = shown.map(function (app) {
             var t = APL.makeTile(app, 1);
@@ -196,9 +201,6 @@
         emptyEl.textContent = !q ? (found.length ? APL.t("Recently Used") : "") :
             found.length ? "" : APL.t("No apps found for “{q}”", { q: query.trim() });
         root.classList.toggle("has-recent", !q && found.length > 0);
-        clearTimeout(filmTimer);
-        filmToken++;
-        setFilms([]);
         askFilms(q);
     }
 
