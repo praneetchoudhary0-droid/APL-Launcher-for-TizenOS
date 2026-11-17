@@ -986,17 +986,19 @@
                 return JSON.stringify({ action: "play", tmdbId: tmdbId, tmdbType: kind });
         }
     }
-    function searchTitles(q) {
+    function searchTitles(q, kind) {
         q = String(q || "").trim().toLowerCase();
-        if (!KEYS.tmdb) return Promise.resolve(q.length < 2 ? demoSearch(q) : demoSearch(q));
-        // Empty or very short query: show trending/popular for the region
+        if (!KEYS.tmdb) return Promise.resolve(demoSearch(q, kind));
+        var cacheKind = kind || "all";
+        // Empty query: show trending for the specific kind
         if (q.length < 2) {
-            var trendKey = "trending." + REGION, hit = cacheGet(trendKey, false, 60 * 60 * 1000);
+            var trendKey = "trending." + REGION + "." + cacheKind, hit = cacheGet(trendKey, false, 60 * 60 * 1000);
             if (hit) return Promise.resolve(hit);
-            return getJson(TMDB + "/trending/all/week?api_key=" + KEYS.tmdb + "&language=" + APL.locale).then(function (j) {
+            var endpoint = kind === "tv" ? "/trending/tv/week" : "/trending/movie/week";
+            return getJson(TMDB + endpoint + "?api_key=" + KEYS.tmdb + "&language=" + APL.locale).then(function (j) {
                 var list = (j.results || []).filter(function (r) {
-                    return (r.media_type === "movie" || r.media_type === "tv") && (r.backdrop_path || r.poster_path);
-                }).slice(0, 20);
+                    return (r.poster_path || r.backdrop_path);
+                }).slice(0, 25);
                 return Promise.all(list.map(providersOf)).then(function (rows) {
                     var out = rows.filter(function (r) { return r.providers.length; });
                     if (out.length) cachePut(trendKey, out, 60 * 60 * 1000);
@@ -1004,19 +1006,37 @@
                 });
             }, function () { return []; });
         }
-        var key = "srch." + REGION + "." + q, hit = cacheGet(key);
+        var key = "srch." + REGION + "." + cacheKind + "." + q, hit = cacheGet(key);
         if (hit) return Promise.resolve(hit);
-        return getJson(TMDB + "/search/multi?api_key=" + KEYS.tmdb + "&language=" + APL.locale +
+        var endpoint = kind === "tv" ? "/search/tv" : "/search/movie";
+        return getJson(TMDB + endpoint + "?api_key=" + KEYS.tmdb + "&language=" + APL.locale +
                        "&include_adult=false&query=" + encodeURIComponent(q)).then(function (j) {
             var list = (j.results || []).filter(function (r) {
-                return (r.media_type === "movie" || r.media_type === "tv") && (r.backdrop_path || r.poster_path);
-            }).slice(0, 20);
+                return (r.poster_path || r.backdrop_path);
+            }).slice(0, 25);
             return Promise.all(list.map(providersOf)).then(function (rows) {
                 var out = rows.filter(function (r) { return r.providers.length; });
                 if (out.length) cachePut(key, out);
                 return out;
             });
         }, function () { return []; });
+    }
+    function demoSearch(q, kind) {
+        var list = DEMO_SEARCH;
+        if (q.length >= 2) {
+            list = DEMO_SEARCH.filter(function (d) { return d[0].toLowerCase().indexOf(q) !== -1; });
+        }
+        // Filter by kind if specified
+        if (kind === "tv") {
+            // In demo, alternate
+            list = list.filter(function (d, i) { return i % 2 === 0; });
+        } else if (kind === "movie") {
+            list = list.filter(function (d, i) { return i % 2 === 1; });
+        }
+        return list.map(function (d, i) {
+            return { id: "demo" + i, kind: kind || "movie", title: d[0], year: d[1], backdrop: IMG + "w300" + d[2],
+                     poster: IMG + "w342" + d[2], providers: [{ key: d[3], name: d[4] }] };
+        });
     }
 
     // Once Vetro is up (system.js checks it at 4 s): the first app in focus already has its own rows

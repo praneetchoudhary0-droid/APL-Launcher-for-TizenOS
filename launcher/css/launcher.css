@@ -1025,12 +1025,15 @@ html, body {
 .search__tab:hover { background: rgba(255, 255, 255, 0.15); color: #fff; }
 .search__tab.is-active { background: #fff; color: #111; transform: scale(1.02); }
 .search__tab.is-focused { background: #fff; color: #111; transform: scale(1.05); }
-.search__results { position: absolute; top: 232px; left: 85px; right: 85px; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 24px; max-height: 720px; overflow-y: auto; }
+.search__results { position: absolute; top: 232px; left: 85px; right: 85px; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 24px; max-height: 720px; overflow-y: auto; }
 .search__results .tile__label { opacity: 1; }
-.search__film { position: relative; width: 100%; min-width: 240px; height: 146px; border-radius: 18px; background: #1a1a2e; display: flex; flex-direction: column; justify-content: flex-end; padding: 16px; box-sizing: border-box; background-size: cover; background-position: center; transition: transform 150ms var(--ease); }
-.search__film.is-focused { transform: scale(1.05); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
-.search__film__title { font-size: 22px; font-weight: 600; color: #fff; margin-bottom: 4px; }
-.search__film__app { font-size: 18px; color: rgba(255, 255, 255, 0.65); }
+.search__film { position: relative; width: 100%; min-width: 180px; display: flex; flex-direction: column; transition: transform 150ms var(--ease); }
+.search__film__poster { width: 100%; aspect-ratio: 2/3; border-radius: 8px; background: #1a1a2e; background-size: cover; background-position: center; transition: transform 150ms var(--ease); }
+.search__film__meta { margin-top: 8px; }
+.search__film__title { font-size: 18px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.search__film__app { font-size: 14px; color: rgba(255, 255, 255, 0.55); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.search__film.is-focused .search__film__poster { transform: scale(1.08); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+.search__film.is-focused .search__film__title { color: #fff; }
 .search__note { position: absolute; bottom: 60px; left: 90px; right: 90px; margin: 0; font-size: 18px; color: rgba(255, 255, 255, 0.38); text-align: center; }
 .search__empty { position: absolute; top: 180px; left: 90px; font-size: 26px; font-weight: 600; color: rgba(255, 255, 255, 0.6); }
 .has-search .shelfinfo, .has-search .home, .has-search .status, .has-search .hint { opacity: 0; }

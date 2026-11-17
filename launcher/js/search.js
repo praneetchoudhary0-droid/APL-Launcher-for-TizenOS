@@ -164,10 +164,14 @@
 
     function filmTile(f, app, kind) {
         var t = el("div", "search__film");
-        var art = f.backdrop || f.poster;
-        if (art) t.style.backgroundImage = "url('" + art + "')";
-        t.appendChild(el("span", "search__film__title", f.title + (f.year ? " (" + f.year + ")" : "")));
-        t.appendChild(el("span", "search__film__app", app.name));
+        var poster = el("div", "search__film__poster");
+        var art = f.poster || f.backdrop;
+        if (art) poster.style.backgroundImage = "url('" + art + "')";
+        t.appendChild(poster);
+        var meta = el("div", "search__film__meta");
+        meta.appendChild(el("span", "search__film__title", f.title + (f.year ? " (" + f.year + ")" : "")));
+        meta.appendChild(el("span", "search__film__app", app.name));
+        t.appendChild(meta);
         t._film = f;
         t._filmApp = app;
         t._kind = kind;
@@ -187,11 +191,11 @@
             if (!app) return;
             var kind = f.kind || (f.media_type === "tv" ? "tv" : "movie");
             var t = filmTile(f, app, kind);
-            if (kind === "tv" && showCount < 12) {
+            if (kind === "tv" && showCount < 20) {
                 showTiles.push(t);
                 showCount++;
                 resultsEl.appendChild(t);
-            } else if (kind === "movie" && movieCount < 12) {
+            } else if (kind === "movie" && movieCount < 20) {
                 movieTiles.push(t);
                 movieCount++;
                 resultsEl.appendChild(t);
@@ -207,12 +211,12 @@
         relayout(keep);
     }
 
-    function askFilms(q) {
+    function askFilms(q, kind) {
         clearTimeout(filmTimer);
         var token = ++filmToken;
         if (!APL.live || !APL.live.searchTitles) return;
         filmTimer = setTimeout(function () {
-            APL.live.searchTitles(q).then(function (list) {
+            APL.live.searchTitles(q, kind).then(function (list) {
                 if (token === filmToken) setFilms(list || []);
             }, function () { if (token === filmToken) setFilms([]); });
         }, 450);
@@ -245,7 +249,8 @@
                 found.length ? "" : APL.t("No apps found for “{q}”", { q: query.trim() });
             root.classList.toggle("has-recent", !q && found.length > 0);
         } else {
-            askFilms(q);
+            var kind = currentTab === "movies" ? "movie" : "tv";
+            askFilms(q, kind);
         }
         relayout();
     }
@@ -275,7 +280,7 @@
         document.body.classList.add("has-search");
         APL.pushNav(nav);
         isOpen = true;
-        askFilms("");
+        askFilms("", "movie");
     }
     function close() {
         if (!isOpen) return;
