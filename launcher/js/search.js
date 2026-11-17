@@ -121,10 +121,8 @@
                 focusFirstResult();
             } else if (c === 27 || c === 10009) {
                 e.preventDefault(); e.stopPropagation(); close();
-            } else if (c === K.LEFT || c === K.RIGHT) {
-                e.preventDefault(); e.stopPropagation();
-                switchTabByKey(c === K.LEFT ? -1 : 1);
             }
+            /* LEFT/RIGHT on field: handled by Nav.onKey */
         });
         fieldEl.addEventListener("blur", function () { root.classList.remove("is-typing"); });
 
@@ -139,10 +137,15 @@
                 if (code >= 48 && code <= 57) { type(String(code - 48)); return true; }
                 if (code === K.BACKSPACE && e.key === "Backspace") { erase(); return true; }
                 if (e.key && e.key.length === 1 && /[\w ]/.test(e.key)) { type(norm(e.key)); return true; }
+                /* LEFT/RIGHT on field: switch tabs. On results: let Nav handle grid navigation. */
                 if (code === K.LEFT || code === K.RIGHT) {
-                    e.preventDefault(); e.stopPropagation();
-                    switchTabByKey(code === K.LEFT ? -1 : 1);
-                    return true;
+                    if (nav.index === 0) {  // on the field
+                        e.preventDefault(); e.stopPropagation();
+                        switchTabByKey(code === K.LEFT ? -1 : 1);
+                        return true;
+                    }
+                    // On results: return false so Nav handles horizontal grid navigation
+                    return false;
                 }
                 return false;
             }
