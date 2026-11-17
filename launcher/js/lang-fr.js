@@ -532,6 +532,8 @@ window.APL_LANG_FR = {
     "Resolution": "Résolution",
     "Storage": "Stockage",
     "Movies and shows: This product uses the TMDB API but is not endorsed or certified by TMDB.": "Films et séries : This product uses the TMDB API but is not endorsed or certified by TMDB.",
+    "Movies & shows": "Films et séries",
+    "Preview: demo titles. Add a TMDB key in js/keys.local.js for the real ones.": "Aperçu : titres de démonstration. Ajoutez une clé TMDB dans js/keys.local.js pour les vrais titres.",
     "Model, software and storage.": "Modèle, logiciel et stockage.",
     "Launcher updates, about.": "Mises à jour du launcher, à propos.",
     "Connected devices: HDMI, TV Access, SmartThings, Emby…": "Périphériques connectés : HDMI, Accès TV, SmartThings, Emby…",

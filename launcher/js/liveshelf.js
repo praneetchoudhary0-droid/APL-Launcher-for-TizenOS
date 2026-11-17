@@ -992,7 +992,7 @@
                        "&include_adult=false&query=" + encodeURIComponent(q)).then(function (j) {
             var list = (j.results || []).filter(function (r) {
                 return (r.media_type === "movie" || r.media_type === "tv") && (r.backdrop_path || r.poster_path);
-            }).slice(0, 6);
+            }).slice(0, 20);
             return Promise.all(list.map(providersOf)).then(function (rows) {
                 var out = rows.filter(function (r) { return r.providers.length; });
                 if (out.length) cachePut(key, out);

@@ -188,7 +188,7 @@
         fieldEl.value = query;
         fieldEl.classList.toggle("is-empty", !query);
         found = match(q);
-        var shown = q && found.length > 8 ? found.slice(0, 8) : found;
+        var shown = q && found.length > 12 ? found.slice(0, 12) : found;
         resultsEl.innerHTML = "";
         appTiles = shown.map(function (app) {
             var t = APL.makeTile(app, 1);

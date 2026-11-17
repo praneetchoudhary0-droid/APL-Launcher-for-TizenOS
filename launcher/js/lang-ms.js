@@ -467,6 +467,8 @@ window.APL_LANG_MS = {
     "Resolution": "Resolusi",
     "Storage": "Storan",
     "Movies and shows: This product uses the TMDB API but is not endorsed or certified by TMDB.": "Filem dan rancangan: Produk ini menggunakan API TMDB tetapi tidak disokong atau diperakui oleh TMDB.",
+    "Movies & shows": "Filem & rancangan",
+    "Preview: demo titles. Add a TMDB key in js/keys.local.js for the real ones.": "Pratonton: tajuk demo. Tambah kunci TMDB di js/keys.local.js untuk tajuk sebenar.",
     "Model, software and storage.": "Model, perisian dan storan.",
     "Launcher updates, about.": "Kemas kini pelancar, perihal.",
     "Connected devices: HDMI, TV Access, SmartThings, Emby…": "Peranti bersambung: HDMI, Akses TV, SmartThings, Emby…",
