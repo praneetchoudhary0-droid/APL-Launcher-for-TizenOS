@@ -1015,21 +1015,46 @@ html, body {
 .search.is-open { opacity: 1; pointer-events: auto; }
 .search__dim { position: absolute; top: 0; right: 0; bottom: 0; left: 0; background: rgba(6, 8, 14, 0.82); -webkit-backdrop-filter: blur(40px) saturate(1.4); backdrop-filter: blur(40px) saturate(1.4); }
 .perf .search__dim { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(6, 8, 14, 0.94); }
-.search__field { position: absolute; top: 64px; left: 90px; right: 90px; height: 72px; padding: 0 20px; box-sizing: border-box; border: 0; border-radius: 22px; outline: none;
-    background: transparent; color: #fff; caret-color: #fff; font: inherit; font-size: 56px; font-weight: 600; letter-spacing: -0.5px; transition: background 150ms ease, transform 150ms var(--ease); }
+.search__field { position: absolute; top: 48px; left: 60px; right: 60px; height: 80px; padding: 0 24px; box-sizing: border-box; border: 0; border-radius: 24px; outline: none;
+    background: transparent; color: #fff; caret-color: #fff; font: inherit; font-size: 60px; font-weight: 600; letter-spacing: -0.5px; transition: background 150ms ease, transform 150ms var(--ease); }
 .search__field::placeholder { color: rgba(255, 255, 255, 0.35); }
 .search__field.is-focused { background: rgba(255, 255, 255, 0.12); }
 .search.is-typing .search__field { background: rgba(255, 255, 255, 0.08); }
-.search__tabs { position: absolute; top: 156px; left: 90px; right: 90px; display: flex; gap: 16px; height: 56px; }
-.search__tab { flex: 1; height: 56px; border: 0; border-radius: 14px; background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.6); font: inherit; font-size: 24px; font-weight: 500; cursor: pointer; transition: background 150ms ease, color 150ms ease, transform 150ms var(--ease); }
+.search__tabs { position: absolute; top: 156px; left: 60px; right: 60px; display: flex; gap: 20px; height: 64px; opacity: 0; transform: translateY(10px); transition: opacity 300ms var(--ease), transform 300ms var(--ease); }
+.search.is-open .search__tabs { opacity: 1; transform: translateY(0); }
+.search__tab { flex: 1; height: 64px; border: 0; border-radius: 16px; background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.6); font: inherit; font-size: 26px; font-weight: 500; cursor: pointer; transition: background 150ms ease, color 150ms ease, transform 150ms var(--ease); }
 .search__tab:hover { background: rgba(255, 255, 255, 0.15); color: #fff; }
 .search__tab.is-active { background: #fff; color: #111; transform: scale(1.02); }
 .search__tab.is-focused { background: #fff; color: #111; transform: scale(1.05); }
-.search__results { position: absolute; top: 232px; left: 85px; right: 85px; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 24px; max-height: 720px; overflow-y: auto; }
+.search__results { position: absolute; top: 250px; left: 60px; right: 60px; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 28px; max-height: 700px; overflow-y: auto; opacity: 0; transform: translateY(15px); transition: opacity 300ms var(--ease), transform 300ms var(--ease); }
+.search.is-open .search__results { opacity: 1; transform: translateY(0); }
 .search__results .tile__label { opacity: 1; }
-.search__film { position: relative; width: 100%; min-width: 180px; display: flex; flex-direction: column; transition: transform 150ms var(--ease); }
-.search__film__poster { width: 100%; aspect-ratio: 2/3; border-radius: 8px; background: #1a1a2e; background-size: cover; background-position: center; transition: transform 150ms var(--ease); }
-.search__film__meta { margin-top: 8px; }
+.search__film { position: relative; width: 100%; min-width: 180px; display: flex; flex-direction: column; opacity: 0; transform: translateY(20px) scale(0.95); transition: opacity 300ms var(--ease), transform 300ms var(--ease); }
+.search.is-open .search__film { opacity: 1; transform: translateY(0) scale(1); }
+.search__film:nth-child(1) { transition-delay: 50ms; }
+.search__film:nth-child(2) { transition-delay: 70ms; }
+.search__film:nth-child(3) { transition-delay: 90ms; }
+.search__film:nth-child(4) { transition-delay: 110ms; }
+.search__film:nth-child(5) { transition-delay: 130ms; }
+.search__film:nth-child(6) { transition-delay: 150ms; }
+.search__film:nth-child(7) { transition-delay: 170ms; }
+.search__film:nth-child(8) { transition-delay: 190ms; }
+.search__film:nth-child(9) { transition-delay: 210ms; }
+.search__film:nth-child(10) { transition-delay: 230ms; }
+.search__film:nth-child(11) { transition-delay: 250ms; }
+.search__film:nth-child(12) { transition-delay: 270ms; }
+.search__film:nth-child(13) { transition-delay: 290ms; }
+.search__film:nth-child(14) { transition-delay: 310ms; }
+.search__film:nth-child(15) { transition-delay: 330ms; }
+.search__film:nth-child(15) { transition-delay: 330ms; }
+.search__film:nth-child(16) { transition-delay: 350ms; }
+.search__film:nth-child(17) { transition-delay: 370ms; }
+.search__film:nth-child(18) { transition-delay: 390ms; }
+.search__film:nth-child(19) { transition-delay: 410ms; }
+.search__film:nth-child(20) { transition-delay: 430ms; }
+.search__film__poster { width: 100%; aspect-ratio: 2/3; border-radius: 8px; background: #1a1a2e; background-size: cover; background-position: center; transition: transform 150ms var(--ease), box-shadow 150ms var(--ease); }
+.search__film__meta { margin-top: 10px; opacity: 0; transform: translateY(10px); transition: opacity 200ms var(--ease), transform 200ms var(--ease); }
+.search.is-open .search__film__meta { opacity: 1; transform: translateY(0); }
 .search__film__title { font-size: 18px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .search__film__app { font-size: 14px; color: rgba(255, 255, 255, 0.55); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .search__film.is-focused .search__film__poster { transform: scale(1.08); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }

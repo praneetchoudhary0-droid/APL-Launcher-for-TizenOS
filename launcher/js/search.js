@@ -38,20 +38,36 @@
             return !a.folder && hidden.indexOf(a.id) === -1;
         });
     }
+    /* Fuzzy match: exact prefix > word prefix > substring > fuzzy (distance <= 2) */
     function match(q) {
         var all = candidates();
         if (!q) {
             var recent = APL.sys.pref("recentApps") || [];
             return recent.map(function (id) { return all.filter(function (a) { return a.id === id; })[0]; }).filter(Boolean);
         }
-        var start = [], word = [], inside = [];
+        var start = [], word = [], inside = [], fuzzy = [];
         all.forEach(function (a) {
             var n = norm(a.name), at = n.indexOf(q);
             if (at === 0) start.push(a);
             else if (at > 0 && (" " + n).indexOf(" " + q) !== -1) word.push(a);
             else if (at > 0) inside.push(a);
+            else if (levenshtein(n, q) <= 2 || (n.length > q.length && levenshtein(n.substr(0, q.length + 1), q) <= 2)) fuzzy.push(a);
         });
-        return start.concat(word, inside);
+        return start.concat(word, inside, fuzzy);
+    }
+    /* Levenshtein distance for fuzzy matching */
+    function levenshtein(a, b) {
+        var m = a.length, n = b.length, d = [], i, j;
+        if (!m) return n; if (!n) return m;
+        for (i = 0; i <= m; i++) d[i] = [i];
+        for (j = 0; j <= n; j++) d[0][j] = j;
+        for (i = 1; i <= m; i++) {
+            for (j = 1; j <= n; j++) {
+                d[i][j] = a[i - 1] === b[j - 1] ? d[i - 1][j - 1] :
+                    Math.min(d[i - 1][j], d[i][j - 1], d[i - 1][j - 1]) + 1;
+            }
+        }
+        return d[m][n];
     }
 
     function appsByKey() {
@@ -142,7 +158,14 @@
         Object.keys(tabButtons).forEach(function (k) {
             tabButtons[k].classList.toggle("is-active", k === id);
         });
-        refresh();
+        /* Animate results out, then in */
+        root.classList.remove("is-open");
+        setTimeout(function () {
+            refresh();
+            requestAnimationFrame(function () {
+                root.classList.add("is-open");
+            });
+        }, 150);
     }
     function switchTabByKey(dir) {
         var order = ["movies", "shows", "apps"];
@@ -248,11 +271,11 @@
             emptyEl.textContent = !q ? (found.length ? APL.t("Recently Used") : "") :
                 found.length ? "" : APL.t("No apps found for “{q}”", { q: query.trim() });
             root.classList.toggle("has-recent", !q && found.length > 0);
+            relayout();
         } else {
             var kind = currentTab === "movies" ? "movie" : "tv";
             askFilms(q, kind);
         }
-        relayout();
     }
 
     function openFilm(f, app) {
