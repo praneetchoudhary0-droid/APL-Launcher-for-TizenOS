@@ -160,15 +160,20 @@
         var on = filmTiles.length > 0;
         filmsEl.style.display = on ? "" : "none";
         filmHead.style.display = on ? "" : "none";
-        if (on) emptyEl.textContent = "";
+        if (on) {
+            var q = norm(query).replace(/\s+/g, " ").replace(/^ /, "");
+            filmHead.textContent = q.length < 2 ? APL.t("Trending This Week") : APL.t("Movies & shows");
+            emptyEl.textContent = "";
+        }
         relayout(keep);
     }
 
-    /* Asked 450 ms after the last letter, and only the last answer is drawn. */
+    /* Asked 450 ms after the last letter, and only the last answer is drawn.
+       Empty/short query also calls searchTitles to show trending/popular. */
     function askFilms(q) {
         clearTimeout(filmTimer);
         var token = ++filmToken;
-        if (!APL.live || !APL.live.searchTitles || q.length < 2) return;
+        if (!APL.live || !APL.live.searchTitles) return;
         filmTimer = setTimeout(function () {
             APL.live.searchTitles(q).then(function (list) {
                 if (token === filmToken) setFilms(list || []);
@@ -229,6 +234,8 @@
         document.body.classList.add("has-search");          // the Home Screen steps back (launcher.css)
         APL.pushNav(nav);
         isOpen = true;
+        /* Immediately show trending/popular when search opens (empty query) */
+        askFilms("");
     }
     function close() {
         if (!isOpen) return;

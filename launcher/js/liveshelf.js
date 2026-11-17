@@ -918,7 +918,11 @@
         ["Cosmos Laundromat", "2015", "/f2wABsgj2lIR2dkDEfBZX8p4Iyk.jpg", "appletv", "Apple TV"]
     ];
     function demoSearch(q) {
-        return DEMO_SEARCH.filter(function (d) { return d[0].toLowerCase().indexOf(q) !== -1; }).map(function (d, i) {
+        var list = DEMO_SEARCH;
+        if (q.length >= 2) {
+            list = DEMO_SEARCH.filter(function (d) { return d[0].toLowerCase().indexOf(q) !== -1; });
+        }
+        return list.map(function (d, i) {
             return { id: "demo" + i, kind: "movie", title: d[0], year: d[1], backdrop: IMG + "w300" + d[2],
                      poster: "", providers: [{ key: d[3], name: d[4] }] };
         });
@@ -984,8 +988,22 @@
     }
     function searchTitles(q) {
         q = String(q || "").trim().toLowerCase();
-        if (q.length < 2) return Promise.resolve([]);
-        if (!KEYS.tmdb) return Promise.resolve(demoSearch(q));
+        if (!KEYS.tmdb) return Promise.resolve(q.length < 2 ? demoSearch(q) : demoSearch(q));
+        // Empty or very short query: show trending/popular for the region
+        if (q.length < 2) {
+            var trendKey = "trending." + REGION, hit = cacheGet(trendKey, false, 60 * 60 * 1000);
+            if (hit) return Promise.resolve(hit);
+            return getJson(TMDB + "/trending/all/week?api_key=" + KEYS.tmdb + "&language=" + APL.locale).then(function (j) {
+                var list = (j.results || []).filter(function (r) {
+                    return (r.media_type === "movie" || r.media_type === "tv") && (r.backdrop_path || r.poster_path);
+                }).slice(0, 20);
+                return Promise.all(list.map(providersOf)).then(function (rows) {
+                    var out = rows.filter(function (r) { return r.providers.length; });
+                    if (out.length) cachePut(trendKey, out, 60 * 60 * 1000);
+                    return out;
+                });
+            }, function () { return []; });
+        }
         var key = "srch." + REGION + "." + q, hit = cacheGet(key);
         if (hit) return Promise.resolve(hit);
         return getJson(TMDB + "/search/multi?api_key=" + KEYS.tmdb + "&language=" + APL.locale +
