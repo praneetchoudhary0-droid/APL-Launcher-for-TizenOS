@@ -217,11 +217,11 @@
             if (!app) return;
             var kind = f.kind || (f.media_type === "tv" ? "tv" : "movie");
             var t = filmTile(f, app, kind);
-            if (kind === "tv" && showCount < 20) {
+            if (kind === "tv" && showCount < 30) {
                 showTiles.push(t);
                 showCount++;
                 resultsEl.appendChild(t);
-            } else if (kind === "movie" && movieCount < 20) {
+            } else if (kind === "movie" && movieCount < 30) {
                 movieTiles.push(t);
                 movieCount++;
                 resultsEl.appendChild(t);
@@ -261,12 +261,15 @@
         fieldEl.value = query;
         fieldEl.classList.toggle("is-empty", !query);
         found = match(q);
-        var shown = q && found.length > 12 ? found.slice(0, 12) : found;
+        var shown = q && found.length > 20 ? found.slice(0, 20) : found;
         if (currentTab === "apps") {
             resultsEl.innerHTML = "";
             appTiles = shown.map(function (app) {
                 var t = APL.makeTile(app, 1);
                 t._app = app;
+                t.style.flexDirection = "column";
+                t.style.width = "100%";
+                t.style.minWidth = "180px";
                 resultsEl.appendChild(t);
                 clickable(t, function () { close(); APL.openApp(app); });
                 return t;

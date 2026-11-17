@@ -998,7 +998,7 @@
             return getJson(TMDB + endpoint + "?api_key=" + KEYS.tmdb + "&language=" + APL.locale).then(function (j) {
                 var list = (j.results || []).filter(function (r) {
                     return (r.poster_path || r.backdrop_path);
-                }).slice(0, 25);
+                }).slice(0, 50);
                 return Promise.all(list.map(providersOf)).then(function (rows) {
                     var out = rows.filter(function (r) { return r.providers.length; });
                     if (out.length) cachePut(trendKey, out, 60 * 60 * 1000);
@@ -1013,7 +1013,7 @@
                        "&include_adult=false&query=" + encodeURIComponent(q)).then(function (j) {
             var list = (j.results || []).filter(function (r) {
                 return (r.poster_path || r.backdrop_path);
-            }).slice(0, 25);
+            }).slice(0, 50);
             return Promise.all(list.map(providersOf)).then(function (rows) {
                 var out = rows.filter(function (r) { return r.providers.length; });
                 if (out.length) cachePut(key, out);
